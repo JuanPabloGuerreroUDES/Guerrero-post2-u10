@@ -1,0 +1,66 @@
+name: API Tests con Newman
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  api-test:
+    name: Newman API Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout del código
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      # 2. Configurar Java 17
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      # 3. Compilar JAR sin ejecutar tests
+      - name: Compilar JAR (skip tests)
+        run: mvn -B package -DskipTests
+
+      # 4. Iniciar la aplicación en segundo plano
+      - name: Iniciar aplicación Spring Boot
+        run: java -jar target/*.jar &
+
+      # 5. Esperar a que la aplicación responda (hasta 30 seg)
+      - name: Esperar health check
+        run: |
+          echo "Esperando que la aplicación inicie..."
+          for i in {1..15}; do
+            if curl -sf http://localhost:8080/actuator/health; then
+              echo "Aplicación lista"
+              break
+            fi
+            echo "Intento $i/15 - esperando 2 segundos..."
+            sleep 2
+          done
+
+      # 6. Instalar Newman
+      - name: Instalar Newman
+        run: npm install -g newman
+
+      # 7. Ejecutar colección Postman con Newman
+      - name: Ejecutar pruebas Newman
+        run: |
+          newman run postman/ColeccionToDo.json \
+            --environment postman/env-ci.json \
+            --reporters cli,junit \
+            --reporter-junit-export target/newman-results.xml
+
+      # 8. Publicar resultados (siempre, incluso si Newman falla)
+      - name: Publicar resultados de Newman
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: newman-results
+          path: target/newman-results.xml

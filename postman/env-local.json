@@ -1,0 +1,13 @@
+{
+  "id": "env-local-guerrero-u10",
+  "name": "ToDoApp-Local",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
