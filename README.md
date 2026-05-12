@@ -1,4 +1,5 @@
 # Guerrero-post2-u10
+## Juan Pablo Guerrero Hernandez - 02230132029
 ## Pruebas E2E con Selenium, Postman y Newman
 **Programación Web — Unidad 10 | Ingeniería de Sistemas — UDES 2026**
 
